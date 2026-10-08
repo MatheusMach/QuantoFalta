@@ -1,7 +1,11 @@
 // Cálculo e HTML dos painéis, compartilhado entre o popup e o minipainel do SIGAA.
 // Script clássico: expõe tudo em `QF`.
 var QF = (() => {
-  const PORTAL_URL = "https://sis.sig.uema.br/sigaa/portais/discente/discente.jsf";
+  // SIGAAs suportados; o popup deixa escolher qual abrir.
+  const INSTITUICOES = {
+    uema: { sigla: "UEMA", origem: "https://sis.sig.uema.br", nota: "Limite = 25% das aulas da carga horária." },
+    ufma: { sigla: "UFMA", origem: "https://sigaa.ufma.br", nota: "Limite = máximo de faltas informado pelo SIGAA." },
+  };
 
   // "45T56" -> 2 encontros/semana de 2 aulas; "2T34 4T12" -> 2 encontros de 2 aulas
   function aulasPorEncontro(horario) {
@@ -17,15 +21,16 @@ var QF = (() => {
   function calcular(t) {
     const r = { ...t };
     if (t.erro) return { ...r, situacao: "erro" };
-    if (!t.ch) return { ...r, situacao: "sem-frequencia" };
+    if (!t.ch && t.maxFaltas == null) return { ...r, situacao: "sem-frequencia" };
 
-    r.limite = t.ch - Math.ceil((t.ch * (t.minimo || 75)) / 100);
+    // UFMA informa o máximo de faltas direto; UEMA, calcula pela carga horária
+    r.limite = t.maxFaltas ?? t.ch - Math.ceil((t.ch * (t.minimo || 75)) / 100);
     r.restam = r.limite - t.faltas;
     const porEncontro = aulasPorEncontro(t.horario);
     r.diasRestantes = porEncontro && r.restam >= 0 ? Math.floor(r.restam / porEncontro) : null;
     r.uso = r.limite > 0 ? t.faltas / r.limite : 0;
 
-    if (!t.ministradas && !t.faltas) r.situacao = "sem-aulas";
+    if (!t.ministradas && !t.faltas && !t.registros) r.situacao = "sem-aulas";
     else if (r.restam < 0) r.situacao = "reprovado";
     else if (r.uso >= 0.75) r.situacao = "perigo";
     else if (r.uso >= 0.5) r.situacao = "atencao";
@@ -142,6 +147,6 @@ var QF = (() => {
     }).join("");
   }
 
-  return { PORTAL_URL, calcular, ordenar, aulasPorEncontro, ROTULO, esc, titulo, haQuanto, meta, selo,
+  return { INSTITUICOES, calcular, ordenar, aulasPorEncontro, ROTULO, esc, titulo, haQuanto, meta, selo,
     htmlResumo, htmlLista, htmlCartoes };
 })();

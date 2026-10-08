@@ -22,6 +22,8 @@ sem precisar abrir turma por turma. Funciona com as disciplinas de qualquer alun
 ![Janela "Selecione o diretório da extensão" aberta na pasta QuantoFalta, com o botão Selecionar pasta](imagens/selecionar-pasta.png)
 
 ## Como usar
+Funciona no SIGAA da **UEMA** e da **UFMA**: escolha a sua no seletor do canto do popup.
+
 é bem intuitivo 
 - loga no sig normalmente
 - vai ta lá clica em atualizar pra recalcular e expandir o painel caso queira ver mais detalhes 

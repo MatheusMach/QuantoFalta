@@ -7,7 +7,9 @@
   const PORTAL = "/sigaa/portais/discente/discente.jsf";
   const ATUALIZAR_A_CADA_MIN = 10;
   const TRAVA_MAX_MIN = 3; // outra aba sincronizando há menos que isso -> não duplica
-  const LINK_TURMA = "td.descricao form a[onclick]";
+  // Na UFMA o <form> da turma fica vazio (o navegador o tira da tabela); o link fica solto no <td>.
+  const LINK_TURMA = 'td.descricao a[onclick*="jsfcljs"]';
+  const idDaTurma = (link) => link.closest("td").querySelector('input[name="idTurma"]')?.value;
 
   const armazenamento = chrome.storage.local;
 
@@ -39,7 +41,18 @@
     const proprio = link.closest("form");
     const form = proprio && proprio.id === m[1] ? proprio : doc.getElementById(m[1]);
     const corpo = new URLSearchParams();
-    for (const input of form.querySelectorAll("input[name]")) corpo.append(input.name, input.value);
+    // form.elements inclui campos associados ao form mesmo fora dele no DOM (caso da UFMA)
+    const campos = new Set([...form.elements, ...form.querySelectorAll("input[name]")]);
+    if (![...campos].some((c) => c.name)) {
+      // form vazio: pega os campos soltos da turma (idTurma no <td> e o hidden com o nome do form)
+      link.closest("td")?.querySelectorAll("input[name]").forEach((c) => campos.add(c));
+      doc.querySelectorAll(`input[name="${CSS.escape(m[1])}"]`).forEach((c) => campos.add(c));
+    }
+    for (const input of campos) if (input.name && input.tagName === "INPUT") corpo.append(input.name, input.value);
+    if (!corpo.has("javax.faces.ViewState")) {
+      const vs = doc.querySelector('input[name="javax.faces.ViewState"]');
+      if (vs) corpo.append(vs.name, vs.value);
+    }
     for (const p of m[2].matchAll(/'([^']*)':'([^']*)'/g)) corpo.set(p[1], p[2]);
     return buscar(new URL(form.getAttribute("action"), location.origin), {
       method: "POST",
@@ -50,7 +63,8 @@
 
   function lerFrequencia(doc) {
     const texto = (doc.querySelector("#conteudo") || doc.body).textContent;
-    if (!/Mapa de Frequ/i.test(texto)) throw new Error("página de frequência não reconhecida");
+    // UEMA: "Mapa de Frequência"; UFMA: "Mapa de Freqüências"
+    if (!/Mapa de Freq/i.test(texto)) throw new Error("página de frequência não reconhecida");
     const num = (re) => {
       const m = re.exec(texto);
       return m ? parseFloat(m[1].replace(",", ".")) : null;
@@ -59,12 +73,18 @@
     const ministradas = num(/Aulas Ministradas:\s*(\d+)/);
     let somaLinhas = 0; // laço simples: o SIGAA carrega o Prototype.js, que reescreve Array#reduce
     for (const m of texto.matchAll(/(\d+)\s*Falta\(s\)/g)) somaLinhas += Number(m[1]);
+    // UFMA não mostra CH nem aulas ministradas, mas já traz o total e o máximo de faltas
+    const totalFaltas = num(/Total de Faltas:\s*(\d+)/);
+    let registros = 0;
+    for (const _ of texto.matchAll(/Presente|\d+\s*Falta\(s\)/g)) registros++;
     return {
+      maxFaltas: num(/ximo de Faltas Permitido:\s*(\d+)/),
+      registros,
       presencas,
       ministradas,
       ch: num(/CH do Componente:\s*(\d+)/),
       minimo: num(/superior a\s*([\d.,]+)\s*%/) || 75,
-      faltas: presencas != null && ministradas != null ? ministradas - presencas : somaLinhas,
+      faltas: presencas != null && ministradas != null ? ministradas - presencas : totalFaltas ?? somaLinhas,
     };
   }
 
@@ -89,7 +109,7 @@
       const link = portal.querySelectorAll(LINK_TURMA)[i];
       const linha = link.closest("tr");
       const turma = {
-        id: link.closest("form").querySelector('input[name="idTurma"]')?.value || String(i),
+        id: idDaTurma(link) || String(i),
         nome: link.textContent.trim(),
         horario: linha.cells[2] ? linha.cells[2].textContent.trim() : "",
       };
@@ -108,7 +128,7 @@
       turmas.push(turma);
     }
 
-    return { ...dadosDoAluno(document), atualizadoEm: Date.now(), turmas };
+    return { ...dadosDoAluno(document), origem: location.origin, atualizadoEm: Date.now(), turmas };
   }
 
   // ------------------------------------------------------------ barra acima da tabela de turmas
@@ -172,7 +192,7 @@
     quadro.querySelectorAll(".qf-selo-tabela").forEach((s) => s.remove());
     const porId = new Map(turmas.map((t) => [t.id, t]));
     for (const link of quadro.querySelectorAll(LINK_TURMA)) {
-      const id = link.closest("form").querySelector('input[name="idTurma"]')?.value;
+      const id = idDaTurma(link);
       const t = porId.get(id);
       if (!t) continue;
       const selo = document.createElement("span");

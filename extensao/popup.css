@@ -10,3 +10,13 @@ body {
 }
 .qf-grade { grid-template-columns: 1fr; }
 .rodape { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+
+/* seletor UEMA | UFMA */
+.qf-inst { margin-left: auto; align-self: flex-start; display: flex; border: 1px solid var(--qf-borda); border-radius: 7px; overflow: hidden; }
+.qf-inst button {
+  font: 600 11px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 6px 8px; border: 0; background: var(--qf-superficie); color: var(--qf-suave); cursor: pointer;
+}
+.qf-inst button + button { border-left: 1px solid var(--qf-borda); }
+.qf-inst button:hover { color: var(--qf-marca); }
+.qf-inst button[aria-pressed="true"] { background: var(--qf-marca); color: #fff; }
