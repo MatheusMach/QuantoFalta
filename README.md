@@ -24,6 +24,8 @@ sem precisar abrir turma por turma. Funciona com as disciplinas de qualquer alun
 ## Como usar
 Funciona no SIGAA da **UEMA** e da **UFMA**: escolha a sua no seletor do canto do popup.
 
+![Popup do QuantoFalta? com o seletor UEMA | UFMA no canto superior direito](imagens/seletor-instituicao.png)
+
 é bem intuitivo 
 - loga no sig normalmente
 - vai ta lá clica em atualizar pra recalcular e expandir o painel caso queira ver mais detalhes 
