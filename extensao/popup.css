@@ -1,0 +1,12 @@
+html { background: var(--qf-fundo); }
+body {
+  width: 380px;
+  margin: 0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--qf-fundo);
+}
+.qf-grade { grid-template-columns: 1fr; }
+.rodape { display: flex; align-items: center; gap: 10px; padding-top: 2px; }

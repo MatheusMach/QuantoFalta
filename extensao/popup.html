@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>QuantoFalta?</title>
+  <link rel="stylesheet" href="qf.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="qf-raiz">
+  <header class="qf-cab">
+    <img class="qf-logo" src="icones/128.png" alt="">
+    <div>
+      <p class="qf-marca">Quanto<span>Falta?</span></p>
+      <p class="qf-aluno" id="aluno"></p>
+      <p class="qf-meta" id="meta"></p>
+    </div>
+  </header>
+
+  <div class="qf-chips" id="resumo"></div>
+  <main class="qf-grade" id="grade"></main>
+
+  <div class="qf-vazio" id="vazio" hidden>
+    Entre no SIGAA e abra o Portal do Discente: as faltas de cada disciplina aparecem aqui sozinhas.
+    <br><a class="qf-btn qf-btn-primario" href="https://sis.sig.uema.br/sigaa/verTelaLogin.do" target="_blank" rel="noopener">Entrar no SIGAA</a>
+  </div>
+
+  <footer class="rodape">
+    <a class="qf-btn" id="atualizar" href="https://sis.sig.uema.br/sigaa/portais/discente/discente.jsf#qf-atualizar" target="_blank" rel="noopener">Atualizar no SIGAA</a>
+    <p class="qf-nota">Limite = 25% das aulas da carga horária. Tudo fica só no seu navegador.</p>
+  </footer>
+
+  <script src="comum.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

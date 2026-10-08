@@ -1,0 +1,60 @@
+/* Barra e selos inseridos direto na página do SIGAA (fora do shadow root). */
+.qf-barra {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border: 1px solid #f3d2d2;
+  border-radius: 6px;
+  background: #fff6f6;
+  font: 12px/1.4 Verdana, Arial, sans-serif;
+  color: #2a1a1a;
+}
+.qf-barra-icone { width: 22px; height: 22px; }
+.qf-barra-titulo { font-size: 13px; color: #f03434; }
+.qf-barra-titulo span { color: #e48a00; }
+.qf-status { color: #8a6b6b; }
+.qf-barra-acoes { margin-left: auto; display: flex; gap: 6px; }
+.qf-bbtn {
+  font: inherit;
+  padding: 3px 10px;
+  border: 1px solid #f0bcbc;
+  border-radius: 4px;
+  background: #fff;
+  color: #2a1a1a;
+  cursor: pointer;
+}
+.qf-bbtn:hover { background: #fff0f0; }
+.qf-bbtn-primario { background: #f03434; border-color: #f03434; color: #fff; }
+.qf-bbtn-primario:hover { background: #d92626; }
+.qf-rodando .qf-status::before {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border: 2px solid #f6c4c4;
+  border-top-color: #f03434;
+  border-radius: 50%;
+  vertical-align: -1px;
+  animation: qf-gira 0.8s linear infinite;
+}
+.qf-rodando [data-acao="atualizar"] { opacity: 0.5; pointer-events: none; }
+@keyframes qf-gira { to { transform: rotate(360deg); } }
+
+.qf-selo-tabela {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font: bold 10px/1.6 Verdana, Arial, sans-serif;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.qf-t-ok { background: #dff3e4; color: #1d6b34; }
+.qf-t-atencao { background: #fff1cc; color: #7a5500; }
+.qf-t-perigo { background: #ffe0d0; color: #a33a12; }
+.qf-t-reprovado { background: #d32f2f; color: #fff; }
+.qf-t-sem-aulas, .qf-t-sem-frequencia, .qf-t-erro { background: #eceff4; color: #5b6578; font-weight: normal; }
