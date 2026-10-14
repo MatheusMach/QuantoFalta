@@ -6,7 +6,8 @@
 
 <p align="center">
 Extensão do Chrome que mostra quantas faltas você tem em cada disciplina do SIGAA,
-sem precisar abrir turma por turma. Funciona com as disciplinas de qualquer aluno.
+sem precisar abrir turma por turma. Também lê as notas lançadas e calcula quanto é
+necessário nas avaliações restantes, na segunda chamada e na prova final.
 </p>
 
 ## Como instalar
@@ -25,6 +26,22 @@ sem precisar abrir turma por turma. Funciona com as disciplinas de qualquer alun
 é bem intuitivo 
 - loga no sig normalmente
 - vai ta lá clica em atualizar pra recalcular e expandir o painel caso queira ver mais detalhes 
+
+## Cálculo das notas
+
+O painel considera as regras do Regimento dos Cursos de Graduação da UEMA:
+
+- média das três notas igual ou superior a 7: aprovação direta;
+- média entre 5 e 7: direito à prova final;
+- na prova final, a média entre a nota da disciplina e a nota da final deve ser pelo menos 5;
+- a segunda chamada substitui a avaliação não realizada.
+
+Base normativa: arts. 119, 120 e 123 da
+[Resolução nº 1816/2024-CEPE/UEMA](https://dados.uema.br/wp-content/uploads/2024/07/resolucao-1816-2024-cepe-uema.pdf).
+
+Quando ainda faltam notas, a extensão mostra a menor nota necessária em cada
+avaliação restante, supondo a mesma nota em todas elas. Os cálculos são uma ajuda
+e não substituem o resultado oficial do SIGAA.
 
 ## Privacidade
 
