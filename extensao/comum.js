@@ -33,6 +33,38 @@ var QF = (() => {
     return r;
   }
 
+  // A UEMA usa três notas: média 7 aprova direto; média entre 5 e 7 dá
+  // direito à prova final; depois dela, (média da disciplina + final) / 2 >= 5.
+  // A segunda chamada ocupa o lugar da avaliação que o aluno não realizou.
+  function calcularNotas(valores) {
+    const notas = Array.from({ length: 3 }, (_, i) => {
+      const n = valores && valores[i];
+      return Number.isFinite(n) && n >= 0 && n <= 10 ? n : null;
+    });
+    const lancadas = notas.filter((n) => n != null);
+    const restantes = 3 - lancadas.length;
+    const soma = lancadas.reduce((total, n) => total + n, 0);
+    const paraCima = (n) => Math.max(0, Math.ceil((n - 1e-9) * 10) / 10);
+
+    if (restantes) {
+      const porAvaliacao = (total) => paraCima((total - soma) / restantes);
+      const direto = porAvaliacao(21);
+      const provaFinal = porAvaliacao(15);
+      return {
+        notas, lancadas: lancadas.length, restantes,
+        direto, diretoPossivel: direto <= 10,
+        provaFinal, provaFinalPossivel: provaFinal <= 10,
+      };
+    }
+
+    const media = Math.round((soma / 3) * 100) / 100;
+    if (media >= 7) return { notas, lancadas: 3, restantes: 0, media, situacao: "aprovado" };
+    if (media >= 5) {
+      return { notas, lancadas: 3, restantes: 0, media, situacao: "final", notaFinal: paraCima(10 - media) };
+    }
+    return { notas, lancadas: 3, restantes: 0, media, situacao: "reprovado-nota" };
+  }
+
   const ORDEM = { reprovado: 0, perigo: 1, atencao: 2, ok: 3, "sem-aulas": 4, "sem-frequencia": 5, erro: 6 };
 
   const ROTULO = {
@@ -92,6 +124,40 @@ var QF = (() => {
     return `Pode faltar mais <b>${t.restam}</b> aula${t.restam === 1 ? "" : "s"}${dias}.`;
   }
 
+  function numero(n) {
+    return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  }
+
+  function htmlNotas(t) {
+    const calculo = calcularNotas(t.notas);
+    if (!calculo.lancadas) return "";
+    const valores = calculo.notas.map((n, i) =>
+      `<span class="qf-nota-valor"><small>N${i + 1}</small><b>${n == null ? "—" : numero(n)}</b></span>`).join("");
+    let mensagem;
+
+    if (calculo.restantes) {
+      const alvo = calculo.restantes === 1 ? "na avaliação restante ou 2ª chamada" : "em cada avaliação restante";
+      if (calculo.diretoPossivel) {
+        mensagem = `Precisa de <b>${numero(calculo.direto)}</b> ${alvo} para passar direto.`;
+      } else {
+        mensagem = "A aprovação direta já não é possível com as notas lançadas.";
+      }
+      if (calculo.provaFinalPossivel) {
+        mensagem += ` Para chegar à prova final, precisa de <b>${numero(calculo.provaFinal)}</b> ${alvo}.`;
+      } else {
+        mensagem += " Mesmo com 10, não alcança a média mínima para a prova final.";
+      }
+    } else if (calculo.situacao === "aprovado") {
+      mensagem = `Média <b>${numero(calculo.media)}</b>: aprovado por média.`;
+    } else if (calculo.situacao === "final") {
+      mensagem = `Média <b>${numero(calculo.media)}</b>: precisa de <b>${numero(calculo.notaFinal)}</b> na prova final.`;
+    } else {
+      mensagem = `Média <b>${numero(calculo.media)}</b>: abaixo da média mínima para fazer a prova final.`;
+    }
+
+    return `<section class="qf-notas"><div class="qf-notas-valores">${valores}</div><p>${mensagem}</p></section>`;
+  }
+
   // ------------------------------------------------------------ blocos de HTML
 
   function htmlResumo(turmas) {
@@ -137,11 +203,12 @@ var QF = (() => {
             <p class="qf-numero"><b>${t.faltas}</b> de ${t.limite} faltas</p>
             <div class="qf-barra"><i style="width:${pct}%"></i></div>` : ""}
           <p class="qf-detalhe">${detalhe(t)}</p>
+          ${htmlNotas(t)}
           ${rodape ? `<p class="qf-rodape">${rodape}</p>` : ""}
         </article>`;
     }).join("");
   }
 
-  return { PORTAL_URL, calcular, ordenar, aulasPorEncontro, ROTULO, esc, titulo, haQuanto, meta, selo,
-    htmlResumo, htmlLista, htmlCartoes };
+  return { PORTAL_URL, calcular, calcularNotas, ordenar, aulasPorEncontro, ROTULO, esc, titulo, haQuanto,
+    meta, selo, htmlResumo, htmlLista, htmlCartoes };
 })();

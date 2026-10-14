@@ -68,6 +68,59 @@
     };
   }
 
+  function semAcentos(texto) {
+    return String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  }
+
+  function itemDoMenu(doc, padrao) {
+    return [...doc.querySelectorAll("#formMenu div.itemMenu")]
+      .find((item) => padrao.test(semAcentos(item.textContent)))?.closest("a") || null;
+  }
+
+  function tipoNota(cabecalho) {
+    const texto = semAcentos(cabecalho).replace(/[ªº]/g, "a").replace(/[.:]/g, "").replace(/\s+/g, " ");
+    const rotulo = "nota|avaliacao|unidade|unid|va";
+    if (new RegExp(`^(1|1a|primeira)\\s*(${rotulo})?\\b`).test(texto) || new RegExp(`^(${rotulo})\\s*1a?\\b`).test(texto)) return 0;
+    if (new RegExp(`^(2|2a|segunda)\\s*(${rotulo})?\\b`).test(texto) || new RegExp(`^(${rotulo})\\s*2a?\\b`).test(texto)) return 1;
+    if (new RegExp(`^(3|3a|terceira)\\s*(${rotulo})?\\b`).test(texto) || new RegExp(`^(${rotulo})\\s*3a?\\b`).test(texto)) return 2;
+    return null;
+  }
+
+  function valorNota(texto) {
+    const limpo = String(texto || "").trim().replace(",", ".");
+    if (!limpo || /^[—-]+$/.test(limpo)) return null;
+    const achado = /(?:^|\s)(10(?:\.0+)?|\d(?:\.\d+)?)(?:\s|$)/.exec(limpo);
+    if (!achado) return null;
+    const nota = Number(achado[1]);
+    return nota >= 0 && nota <= 10 ? nota : null;
+  }
+
+  // A tela mudou de rótulos entre versões do SIGAA. Em vez de depender de ids,
+  // localiza uma linha de cabeçalhos com as três avaliações e lê a primeira
+  // linha de dados compatível (a página da turma mostra apenas o próprio aluno).
+  function lerNotas(doc) {
+    const tabelas = [...doc.querySelectorAll("table")];
+    for (const tabela of tabelas) {
+      const linhas = [...tabela.querySelectorAll("tr")];
+      for (let i = 0; i < linhas.length; i++) {
+        const cabecalhos = [...linhas[i].querySelectorAll("th, td")].map((celula) => celula.textContent.trim());
+        const posicoes = cabecalhos.map(tipoNota);
+        if (new Set(posicoes.filter((p) => p != null)).size < 2) continue;
+
+        for (const linha of linhas.slice(i + 1)) {
+          const celulas = [...linha.querySelectorAll("td")];
+          if (celulas.length !== cabecalhos.length) continue;
+          const notas = [null, null, null];
+          for (let coluna = 0; coluna < posicoes.length; coluna++) {
+            if (posicoes[coluna] != null) notas[posicoes[coluna]] = valorNota(celulas[coluna].textContent);
+          }
+          if (notas.some((nota) => nota != null)) return notas;
+        }
+      }
+    }
+    return null;
+  }
+
   function dadosDoAluno(doc) {
     const texto = doc.body.innerText || doc.body.textContent;
     const nome = doc.querySelector("p.usuario span");
@@ -96,11 +149,23 @@
       aoProgredir(i + 1, total, turma.nome);
       try {
         const ava = await clicarJsf(portal, link);
-        const item = [...ava.querySelectorAll("#formMenu div.itemMenu")].find(
-          (d) => d.textContent.trim() === "Frequência"
-        );
-        if (!item) turma.ch = 0;
-        else Object.assign(turma, lerFrequencia(await clicarJsf(ava, item.closest("a"))));
+        let paginaAtual = ava;
+        const frequencia = itemDoMenu(paginaAtual, /^frequencia$/);
+        if (!frequencia) turma.ch = 0;
+        else {
+          paginaAtual = await clicarJsf(paginaAtual, frequencia);
+          Object.assign(turma, lerFrequencia(paginaAtual));
+        }
+
+        const notas = itemDoMenu(paginaAtual, /^(minhas |ver )?notas$/) || itemDoMenu(ava, /^(minhas |ver )?notas$/);
+        if (notas) {
+          try {
+            const docNotas = await clicarJsf(notas.ownerDocument, notas);
+            turma.notas = lerNotas(docNotas);
+          } catch (_) {
+            // Falha ao ler notas não deve esconder as informações de frequência.
+          }
+        }
       } catch (e) {
         if (e.message === "sessao-expirada") throw e;
         turma.erro = e.message;
