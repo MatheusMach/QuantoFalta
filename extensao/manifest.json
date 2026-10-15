@@ -3,7 +3,9 @@
   "name": "QuantoFalta?",
   "version": "1.0",
   "description": "Mostra quantas faltas você tem em cada disciplina do SIGAA, atualizando sozinho quando você entra no portal.",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "icons": {
     "16": "icones/16.png",
     "32": "icones/32.png",
@@ -21,16 +23,36 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://sis.sig.uema.br/sigaa/*"],
-      "js": ["comum.js", "content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "https://sis.sig.uema.br/sigaa/*"
+      ],
+      "js": [
+        "comum.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["qf.css", "painel-site.css", "icones/128.png", "icones/32.png"],
-      "matches": ["https://sis.sig.uema.br/*"]
+      "resources": [
+        "qf.css",
+        "painel-site.css",
+        "icones/128.png",
+        "icones/32.png"
+      ],
+      "matches": [
+        "https://sis.sig.uema.br/*"
+      ]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "quanto_falta@engenhariadecomputador.com.br",
+      "strict_min_version": "109.0"
+    }
+  }
 }
