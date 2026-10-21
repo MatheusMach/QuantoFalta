@@ -1,7 +1,21 @@
 const $ = (id) => document.getElementById(id);
 
-function desenhar(dados) {
-  const tem = dados && dados.turmas && dados.turmas.length;
+let dadosAtuais = null;
+let instituicao = null;
+
+function desenhar() {
+  const inst = QF.INSTITUICOES[instituicao];
+  const dados = dadosAtuais;
+  // dados salvos de outro SIGAA não aparecem com esta instituição selecionada
+  const daqui = dados && (!dados.origem || dados.origem === inst.origem);
+  const tem = daqui && dados.turmas && dados.turmas.length;
+
+  for (const b of document.querySelectorAll(".qf-inst button"))
+    b.setAttribute("aria-pressed", String(b.dataset.inst === instituicao));
+  $("entrar").href = `${inst.origem}/sigaa/verTelaLogin.do`;
+  $("atualizar").href = `${inst.origem}/sigaa/portais/discente/discente.jsf#qf-atualizar`;
+  $("nota").textContent = inst.nota;
+
   $("vazio").hidden = !!tem;
   $("atualizar").hidden = !tem;
   $("resumo").innerHTML = "";
@@ -17,7 +31,24 @@ function desenhar(dados) {
   $("grade").innerHTML = QF.htmlCartoes(turmas);
 }
 
+for (const b of document.querySelectorAll(".qf-inst button")) {
+  b.addEventListener("click", () => {
+    instituicao = b.dataset.inst;
+    chrome.storage.local.set({ instituicao });
+    desenhar();
+  });
+}
+
 chrome.storage.onChanged.addListener((mudancas, area) => {
-  if (area === "local" && mudancas.dados) desenhar(mudancas.dados.newValue);
+  if (area !== "local" || !mudancas.dados) return;
+  dadosAtuais = mudancas.dados.newValue;
+  desenhar();
 });
-chrome.storage.local.get("dados").then(({ dados }) => desenhar(dados));
+
+chrome.storage.local.get(["dados", "instituicao"]).then(({ dados, instituicao: salva }) => {
+  dadosAtuais = dados;
+  // sem escolha salva: usa a do último SIGAA sincronizado, senão UFMA
+  const doUltimo = Object.keys(QF.INSTITUICOES).find((k) => QF.INSTITUICOES[k].origem === dados?.origem);
+  instituicao = QF.INSTITUICOES[salva] ? salva : doUltimo || "ufma";
+  desenhar();
+});

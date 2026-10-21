@@ -14,6 +14,10 @@
       <p class="qf-aluno" id="aluno"></p>
       <p class="qf-meta" id="meta"></p>
     </div>
+    <div class="qf-inst" role="group" aria-label="Instituição">
+      <button type="button" data-inst="uema">UEMA</button>
+      <button type="button" data-inst="ufma">UFMA</button>
+    </div>
   </header>
 
   <div class="qf-chips" id="resumo"></div>
@@ -21,12 +25,12 @@
 
   <div class="qf-vazio" id="vazio" hidden>
     Entre no SIGAA e abra o Portal do Discente: as faltas de cada disciplina aparecem aqui sozinhas.
-    <br><a class="qf-btn qf-btn-primario" href="https://sis.sig.uema.br/sigaa/verTelaLogin.do" target="_blank" rel="noopener">Entrar no SIGAA</a>
+    <br><a class="qf-btn qf-btn-primario" id="entrar" target="_blank" rel="noopener">Entrar no SIGAA</a>
   </div>
 
   <footer class="rodape">
-    <a class="qf-btn" id="atualizar" href="https://sis.sig.uema.br/sigaa/portais/discente/discente.jsf#qf-atualizar" target="_blank" rel="noopener">Atualizar no SIGAA</a>
-    <p class="qf-nota">Limite = 25% das aulas da carga horária. Tudo fica só no seu navegador.</p>
+    <a class="qf-btn" id="atualizar" target="_blank" rel="noopener">Atualizar no SIGAA</a>
+    <p class="qf-nota"><span id="nota"></span> Tudo fica só no seu navegador.</p>
   </footer>
 
   <script src="comum.js"></script>
